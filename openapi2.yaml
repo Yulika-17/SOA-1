@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: Сервис-ориентированная архитектура. Лабораторная работа №1.
+  description: Второй веб-сервис.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8089/api/v1'
+paths:
+  /agency/get-most-expensive/{id1}/{id2}/{id3}:
+    get:
+      tags:
+        - Дополнительные операции с Agency
+      summary: Выбрать из трёх квартир с заданными id наиболее дорогую
+      operationId: getMostExpensiveFlat
+      parameters:
+        - name: id1
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+            example: 1
+        - name: id2
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+            example: 2
+        - name: id3
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+            example: 3
+      responses:
+        '200':
+          description: Возвращает ID самой дорогой квартиры
+          content:
+            application/xml:
+              schema:
+                type: integer
+                format: int64
+                example: 1
+                xml:
+                  name: id
+        '400':
+          description: Invalid query param
+          content:
+            application/xml:
+              schema:
+                $ref: './openapi1.yaml#/components/schemas/ErrorIQP'
+        '500':
+          description: Internal server error
+          content:
+            application/xml:
+              schema:
+                $ref: './openapi1.yaml#/components/schemas/ErrorISE'
+        '404':
+          description: Returned for other errors
+          content:
+            application/xml:
+              schema:
+                $ref: './openapi1.yaml#/components/schemas/ErrorDefault'
+
+  /agency/get-ordered-by-time-to-metro/{by-transport}/{desc}:
+    get:
+      tags:
+        - Дополнительные операции с Agency
+      summary: Вернуть список всех квартир, отсортированный по времени до метро
+      operationId: getFlatsOrderedByTimeToMetro
+      parameters:
+        - name: by-transport
+          in: path
+          description: Тип транспорта (false для пешком, true для транспорта)
+          required: true
+          schema:
+            type: boolean
+            example: false
+        - name: desc
+          in: path
+          description: Порядок сортировки (false для возрастания, true для убывания)
+          required: true
+          schema:
+            type: boolean
+            example: false
+      responses:
+        '200':
+          description: Список квартир, отсортированный по времени до метро
+          content:
+            application/xml:
+              schema:
+                type: array
+                xml:
+                  name: flats
+                  wrapped: true
+                items:
+                  $ref: './openapi1.yaml#/components/schemas/FlatAllFields'
+        '400':
+          description: Invalid query param
+          content:
+            application/xml:
+              schema:
+                $ref: './openapi1.yaml#/components/schemas/ErrorIQP'
+        '500':
+          description: Internal server error
+          content:
+            application/xml:
+              schema:
+                $ref: './openapi1.yaml#/components/schemas/ErrorISE'
+        '404':
+          description: Returned for other errors
+          content:
+            application/xml:
+              schema:
+                $ref: './openapi1.yaml#/components/schemas/ErrorDefault'

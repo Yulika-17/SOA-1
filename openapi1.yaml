@@ -1,0 +1,597 @@
+openapi: 3.0.3
+info:
+  title: Сервис-ориентированная архитектура. Лабораторная работа №1.
+  description: Первый веб-сервис.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8088/api/v1'
+tags:
+  - name: Базовые операции
+    description: CRUD для Flat
+  - name: Дополнительные операции
+    description: Расширенная работа с коллекцией
+paths:
+  /flats:
+    get:
+      tags:
+        - Базовые операции
+      summary: Получить список квартир с фильтрацией, сортировкой и постраничным выводом
+      operationId: getFlats
+      parameters:
+        - name: size
+          in: query
+          description: Размер страницы
+          required: false
+          schema:
+            type: integer
+            default: 5
+            minimum: 1
+        - name: page
+          in: query
+          description: Номер страницы
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: sort
+          in: query
+          description: Массив элементов, которые будут использованы для сортировки. Для сортировки по убыванию перед элементов нужно поставить знак '<'.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              example: <id
+              pattern: '^<{0,1}(id|name|coordinates\.x|coordinates\.y|creationDate|area|numberOfRooms|furnish|view|transport|house\.name|house\.year|house\.numberOfFlatsOnFloor|house\.numberOfLifts)$'
+          explode: true
+        - name: filter
+          in: query
+          required: false
+          description: Массив элементов, которые будут характеризовать фильтрацию. Для каждого элемента возможна фильтрация '=', '!=', '>', '<', '>=', '<='. Элемент и тип фильтрации указываются слитно, затем идет значение.
+          schema:
+            type: array
+            items:
+              type: string
+              example: id=3
+              pattern: '^(id|name|coordinates\.x|coordinates\.y|creationDate|area|numberOfRooms|furnish|view|transport|house\.name|house\.year|house\.numberOfFlatsOnFloor|house\.numberOfLifts)(=|!=|>|<|>=|<=)([0-9]+)$'
+          explode: true
+      responses:
+        '200':
+          description: Returns a list of flats
+          content:
+            application/xml:
+              schema:
+                type: array
+                xml: 
+                  name: flats
+                  wrapped: true
+                items:
+                  $ref: '#/components/schemas/FlatAllFields'
+        '400':
+          description: Invalid query param
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorIQP'
+        '500':
+          description: Internal server error
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorISE'
+        '404':
+          description: Returned for other errors
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDefault'          
+    post:
+      tags:
+        - Базовые операции
+      summary: Добавить новую квартиру
+      operationId: addFlat
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Flat'
+      responses:
+        '200':
+          description: Returns the added Flat
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/FlatAllFields'
+        '400':
+          description: Invalid input
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorII'
+        '500':
+          description: Internal server error
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorISE'
+        '404':
+          description: Returned for other errors
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDefault'
+          
+  /flats/{id}:
+    get:
+      tags:
+        - Базовые операции
+      summary: Получить квартиру по ID
+      operationId: getFlat
+      parameters:
+        - name: id
+          in: path
+          description: id квартиры
+          required: true
+          schema:
+            type: integer
+            format: int64
+            nullable: false
+            minimum: 1
+            example: 1
+      responses:
+        '200':
+          description: Returns Flat
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/FlatAllFields'
+        '400':
+          description: Invalid query param
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorIQP'
+        '500':
+          description: Internal server error
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorISE'
+        '404':
+          description: Returned for other errors
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDefault'
+          
+    put:
+      tags:
+        - Базовые операции
+      summary: Обновить квартиру по ID
+      operationId: updateFlat
+      parameters:
+        - name: id
+          in: path
+          description: id квартиры
+          required: true
+          schema:
+            type: integer
+            format: int64
+            nullable: false
+            minimum: 1
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Flat'
+      responses:
+        '200':
+          description: Returns the updated Flat
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/FlatAllFields'
+        '400':
+          description: Invalid query param
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorIQP'
+        '500':
+          description: Internal server error
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorISE'
+        '404':
+          description: Returned for other errors
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDefault'
+              
+    delete:
+      tags:
+        - Базовые операции
+      summary: Удалить квартиру по ID
+      operationId: deleteFlat
+      parameters:
+        - name: id
+          in: path
+          description: id квартиры
+          required: true
+          schema:
+            type: integer
+            format: int64
+            nullable: false
+            minimum: 1
+            example: 1
+      responses:
+        '204':
+          description: The flat was successfully deleted
+          content:
+            application/xml:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 204
+                  message:
+                    type: string
+                    example: The flat was successfully deleted
+                  time:
+                    type: string
+                    format: date-time
+                    example: "2024-09-10T00:00:00Z"
+                xml:
+                  name: NoContent
+        '400':
+          description: Invalid query param
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorIQP'
+        '500':
+          description: Internal server error
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorISE'
+        '404':
+          description: Returned for other errors
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDefault'
+
+  /flats/average-number-of-rooms:
+    get:
+      tags:
+        - Дополнительные операции
+      summary: Рассчитать среднее значение поля numberOfRooms для всех квартир
+      operationId: getFlatsAverageNumberOfRooms
+      responses:
+        '200':
+          description: Среднее значение количества комнат
+          content:
+            application/xml:
+              schema:
+                type: number
+                example: 2.5
+                xml:
+                  name: AverageRooms
+        '500':
+          description: Internal server error
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorISE'
+        '404':
+          description: Returned for other errors
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDefault'
+                
+  /flats/count-by-transport:
+    get:
+      tags:
+        - Дополнительные операции
+      summary: Вернуть количество квартир с transport больше заданного значения
+      operationId: getFlatsCountByTransportGreaterThan
+      parameters:
+        - name: transport
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Transport'
+      responses:
+        '200':
+          description: Количество квартир с transport больше заданного значения
+          content:
+            application/xml:
+              schema:
+                type: integer
+                format: int32
+                example: 10
+                xml:
+                  name: Count
+        '400':
+          description: Invalid query param
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorIQP'
+        '500':
+          description: Internal server error
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorISE'
+        '404':
+          description: Returned for other errors
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDefault'
+
+  /flats/filter-by-furnish:
+    get:
+      tags:
+        - Дополнительные операции
+      summary: Вернуть массив квартир с furnish больше заданного значения
+      operationId: getFlatsByFurnishGreaterThan
+      parameters:
+        - name: furnish
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Furnish'
+      responses:
+        '200':
+          description: Массив квартир с furnish больше заданного значения
+          content:
+            application/xml:
+              schema:
+                type: array
+                xml:
+                  name: flats
+                  wrapped: true
+                items:
+                  $ref: '#/components/schemas/FlatAllFields'
+        '400':
+          description: Invalid query param
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorIQP'
+        '500':
+          description: Internal server error
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorISE'
+        '404':
+          description: Returned for other errors
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDefault'
+
+components:
+  schemas:
+    Furnish:
+      type: string
+      enum:
+        - DESIGNER
+        - FINE
+        - BAD
+        - LITTLE
+      nullable: true
+      example: DESIGNER
+      xml:
+        name: furnish
+      
+    View:
+      type: string
+      enum:
+        - STREET
+        - YARD
+        - GOOD
+      nullable: false
+      example: STREET
+      xml:
+        name: view
+        
+    Transport:
+      type: string
+      enum:
+        - FEW
+        - NONE
+        - NORMAL
+        - ENOUGH
+      nullable: false
+      example: FEW
+      xml:
+        name: transport
+        
+    House:
+      type: object
+      properties:
+        name:
+          type: string
+          example: House №1
+          nullable: true
+        year:
+          type: integer
+          format: int64
+          maximum: 210
+          minimum: 1
+          example: 150
+        numberOfFlatsOnFloor:
+          type: integer
+          format: int32
+          minimum: 1
+          example: 4
+        numberOfLifts:
+          type: integer
+          format: int32
+          minimum: 1
+          example: 2
+      xml:
+        name: house
+      
+    Coordinates:
+      type: object
+      properties:
+        x:
+          type: integer
+          format: int64
+          example: 100
+        y:
+          type: number
+          format: double
+          nullable: false
+          example: 200.5
+      xml:
+        name: coordinates
+        
+    Flat:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: false
+          minLength: 1
+          example: Flat №1
+        coordinates:
+          $ref: '#/components/schemas/Coordinates'
+        area:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 70
+        numberOfRooms:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 3
+        furnish:
+          $ref: '#/components/schemas/Furnish'
+        view:
+          $ref: '#/components/schemas/View'
+        transport:
+          $ref: '#/components/schemas/Transport'
+        house:
+          $ref: '#/components/schemas/House'
+        price:
+          type: number
+          format: double
+          nullable: false
+          minimum: 0
+          exclusiveMinimum: true
+          example: 777777
+        by-transport:
+          type: boolean
+          nullable: false
+          example: true
+      xml:
+        name: flat
+        
+    FlatAllFields:
+      allOf:
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+              format: int64
+              nullable: false
+              minimum: 1
+              example: 1
+              description: unique identifier of flat
+            creationDate:
+              type: string
+              format: date-time
+              nullable: false
+              example: 2024-09-10T00:00:10Z
+        - $ref: '#/components/schemas/Flat'
+      
+    ErrorDefault:
+      type: object
+      required:
+        - code
+        - message
+        - time
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 404
+        message:
+          type: string
+          example: Not Found
+        time:
+          type: string
+          example: "2024-09-10T00:00:00Z"
+          
+    ErrorIQP:
+      type: object
+      required:
+        - code
+        - message
+        - time
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 400
+        message:
+          type: string
+          example: Invalid query param
+        time:
+          type: string
+          example: "2024-09-10T00:00:00Z"
+          
+    ErrorISE:
+      type: object
+      required:
+        - code
+        - message
+        - time
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 500
+        message:
+          type: string
+          example: Internal server error
+        time:
+          type: string
+          example: "2024-09-10T00:00:00Z"
+          
+    ErrorII:
+      type: object
+      required:
+        - code
+        - message
+        - time
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 400
+        message:
+          type: string
+          example: Invalid input
+        time:
+          type: string
+          example: "2024-09-10T00:00:00Z"
